@@ -11,6 +11,9 @@ MainWindow::MainWindow(GameRules* gamerules) : QMainWindow(), ui(new Ui::MainWin
 
     ui->setupUi(this);
     this->gamerules = gamerules;
+    ui->MediumMode->setChecked(true);
+
+    game = new GameWindow(gamerules);
 
 }
 
@@ -23,13 +26,19 @@ MainWindow::~MainWindow() {
 void MainWindow::on_Begin_1P_clicked() {
 
     gamerules->multiplayer = false;
-    delete this;
+    gamerules->running = true;
+
+    this->hide();
+    game->show();
 }
 
 void MainWindow::on_Begin_2P_clicked() {
 
     gamerules->multiplayer = true;
-    delete this;
+    gamerules->running = true;
+
+    this->hide();
+    game->show();
 }
 
 void MainWindow::on_EasyMode_clicked()

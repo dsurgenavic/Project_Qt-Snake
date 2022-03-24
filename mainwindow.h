@@ -3,10 +3,12 @@
 
 #include <QMainWindow>
 #include "GameRules.h"
+#include "gamewindow.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
+
 
 class MainWindow : public QMainWindow
 {
@@ -32,5 +34,6 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
+    GameWindow* game;
 };
 #endif // MAINWINDOW_H

@@ -2,37 +2,29 @@
 #define GAMEWINDOW_H
 
 #include <QMainWindow>
-#include <QPainter>
-#include <QKeyEvent>
+#include <QPaintEvent>
 #include "GameRules.h"
 
-enum direction{
-    UP, DOWN, LEFT, RIGHT
-};
-
-struct Snake {
-    int headx;
-    int heady;
-    enum direction head_dir;
-    int length;
-};
+namespace Ui {
+    class GameWindow;
+}
 
 class GameWindow : public QMainWindow
 {
     Q_OBJECT
+
 public:
-    GameWindow(QWidget *parent = nullptr);
-    GameWindow(GameRules* gamerules);
+    explicit GameWindow(QWidget *parent = nullptr);
+    GameWindow(GameRules* gamerules, QWidget *parent = nullptr);
     ~GameWindow();
 
-    GameRules gamerules;
+    GameRules* gamerules;
 
 protected:
     void paintEvent(QPaintEvent *event);
-    void keyPressEvent(QKeyEvent *event);
 
-signals:
-
+private:
+    Ui::GameWindow *ui;
 };
 
 #endif // GAMEWINDOW_H

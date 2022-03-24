@@ -9,9 +9,12 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
-    GameRules *gamerules;
+    GameRules *gamerules = new GameRules;
+    gamerules->gameSpeed = NORMAL;
+    gamerules->multiplayer = false;
 
-    MainWindow w((void*)gamerules);
+    MainWindow w(gamerules);
     w.show();
+
     return a.exec();
 }

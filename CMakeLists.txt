@@ -44,6 +44,7 @@ else()
     mainwindow.ui
     gamewindow.cpp
     gamewindow.h
+    gamewindow.ui
     gamerules.h
   )
 endif()
