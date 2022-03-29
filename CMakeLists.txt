@@ -42,10 +42,10 @@ else()
     mainwindow.cpp
     mainwindow.h
     mainwindow.ui
-    gamewindow.cpp
-    gamewindow.h
-    gamewindow.ui
     gamerules.h
+    snake.h
+    snake.cpp
+    snake.ui
   )
 endif()
 

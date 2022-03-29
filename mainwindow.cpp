@@ -13,7 +13,7 @@ MainWindow::MainWindow(GameRules* gamerules) : QMainWindow(), ui(new Ui::MainWin
     this->gamerules = gamerules;
     ui->MediumMode->setChecked(true);
 
-    game = new GameWindow(gamerules);
+    game = new Snake(gamerules);
 
 }
 
@@ -30,6 +30,7 @@ void MainWindow::on_Begin_1P_clicked() {
 
     this->hide();
     game->show();
+    game->StartGame();
 }
 
 void MainWindow::on_Begin_2P_clicked() {
@@ -39,6 +40,7 @@ void MainWindow::on_Begin_2P_clicked() {
 
     this->hide();
     game->show();
+    game->StartGame();
 }
 
 void MainWindow::on_EasyMode_clicked()

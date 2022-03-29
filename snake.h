@@ -7,6 +7,7 @@
 #include <QRandomGenerator>
 #include <QPainter>
 #include <QTime>
+#include "GameRules.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class Snake; }
@@ -17,8 +18,9 @@ class Snake : public QMainWindow
     Q_OBJECT
 
 public:
-    Snake(QWidget *parent = nullptr);
+    Snake(GameRules *gamerules, QWidget *parent = nullptr);
     ~Snake();
+    void StartGame();
 
 protected:
     void paintEvent(QPaintEvent *);
@@ -32,16 +34,17 @@ private:
     static const int DOT_SIZE = 40;
     static const int ALL_DOTS = 400;
     static const int RAND_POS = 29;
-    static const int DELAY1 = 140;
-    static const int DELAY2 = 200;
-    static const int DELAY3 = 300;
+    static const int DELAY1 = 250;
+    static const int DELAY2 = 500;
+    static const int DELAY3 = 1000;
+
+    GameRules *gamerules;
 
     int timerId;
     int tailsize1;
     int tailsize2;
     int applex;
     int appley;
-    //int playerss = 2;
 
     int x1[ALL_DOTS];
     int y1[ALL_DOTS];
@@ -50,18 +53,13 @@ private:
 
 
 
-    bool leftDirection1;
-    bool rightDirection1;
-    bool upDirection1;
-    bool downDirection1;
-    bool leftDirection2;
-    bool rightDirection2;
-    bool upDirection2;
-    bool downDirection2;
-    bool inGame;
+    enum direction {UP, DOWN, LEFT, RIGHT, NONE};
+    direction dir1;
+    direction dir2;
+
+
 
     void loadImages();
-    void StartGame();
     void CreateApple();
     void CheckApple();
     void CheckCollision();

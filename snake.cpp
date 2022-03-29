@@ -1,19 +1,17 @@
 #include "snake.h"
 #include "ui_snake.h"
 
-Snake::Snake(QWidget *parent)
+Snake::Snake(GameRules *gamerules, QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::Snake)
 {
     ui->setupUi(this);
-    leftDirection1 = false;
-    rightDirection1 = true;
-    upDirection1 = false;
-    downDirection1 = false;
-    inGame = true;
+    this->gamerules = gamerules;
+
+    dir1 = NONE;
+    dir2 = NONE;
 
     setFixedSize(B_WIDTH, B_HEIGHT);
-    StartGame();
 }
 
 Snake::~Snake()
@@ -21,47 +19,40 @@ Snake::~Snake()
     delete ui;
 }
 
-
-
-
 void Snake::StartGame() {
-    int players=2;                  //SETTING PLAYER COUNT
-    int mode=1;                     // SETTING MODE
-    if (players==1){
-        tailsize1 = 3;
-    }
-    if (players==2){
-        tailsize1 = 3;
+                    // SETTING MODE
+    tailsize1 = 3;
+    if (gamerules->multiplayer){
         tailsize2 = 3;
     }
 
 
-    if (players==2){                                 //change later
-        for (int z1 = 0; z1 < tailsize1; z1++) {
-            x1[z1] = 80;
-            y1[z1] = 40;
+    if (gamerules->multiplayer){                                 //change later
+        for (int z1 = 0; z1 <= tailsize1; z1++) {
+            x1[z1] = 200;
+            y1[z1] = 400 + 40 * z1;
         }
-        for (int z2 = 0; z2 < tailsize2; z2++) {
-            x2[z2] = 720;
-            y2[z2] = 40;
+        for (int z2 = 0; z2 <= tailsize2; z2++) {
+            x2[z2] = 600;
+            y2[z2] = 400 + 40 * z2;
         }
     }
     else{
-        for (int z = 0; z < tailsize1; z++) {
-            x1[z] = 40;
-            y1[z] = 40;
+        for (int z = 0; z <= tailsize1; z++) {
+            x1[z] = 200;
+            y1[z] = 400 + 40 * z;
 
        }
     }
     CreateApple();
 
-    if(mode==1){
+    if(gamerules->gameSpeed == FAST){
         timerId = startTimer(DELAY1);  // fast
     }
-    if(mode==2){
+    else if(gamerules->gameSpeed == NORMAL){
         timerId = startTimer(DELAY2);  // medium
     }
-    if(mode==3){
+    else if(gamerules->gameSpeed == SLOW){
         timerId = startTimer(DELAY3);  // slow
     }
 }
@@ -72,56 +63,41 @@ void Snake::paintEvent(QPaintEvent *e) {
     Draw();
 }
 
-
 void Snake::Draw(){
-    QPainter qp(this);
+    QPainter p(this);
 
-    if (inGame==true) {
+    if (gamerules->running) {
 
-        QRectF apple(applex,appley, 40, 40);
-        QPainter a(this);
-        a.setBrush(Qt::red);
-        a.drawEllipse(apple);
+        p.setBrush(Qt::red);
+        p.drawEllipse(applex,appley, 40, 40);
 
-        for (int z = 0; z < tailsize1; z++) {
+        for (int z = 0; z <= tailsize1; z++) {
             if (z == 0) {
-                QRectF head(x1[z], y1[z], 40, 40);
-                QPainter h(this);
-                h.setBrush(Qt::blue);
-                h.drawEllipse(head);
+                p.setBrush(Qt::blue);
+                p.drawEllipse(x1[z], y1[z], 40, 40);
             } else {
-                QRectF head(x1[z], y1[z], 40, 40);
-                QPainter h(this);
-                h.setBrush(Qt::darkBlue);
-                h.drawEllipse(head);
+                p.setBrush(Qt::darkBlue);
+                p.drawEllipse(x1[z], y1[z], 40, 40);
             }
         }
-
-        for (int z = 0; z < tailsize2; z++) {
-            if (z == 0) {
-                QRectF head(x2[z], y2[z], 40, 40);
-                QPainter h(this);
-                h.setBrush(Qt::cyan);
-                h.drawEllipse(head);
-            } else {
-                QRectF head(x2[z], y2[z], 40, 40);
-                QPainter h(this);
-                h.setBrush(Qt::darkCyan);
-                h.drawEllipse(head);
+        if(gamerules->multiplayer) {
+            for (int z = 0; z <= tailsize2; z++) {
+                if (z == 0) {
+                    p.setBrush(Qt::cyan);
+                    p.drawEllipse(x2[z], y2[z], 40, 40);
+                } else {
+                    p.setBrush(Qt::darkCyan);
+                    p.drawEllipse(x2[z], y2[z], 40, 40);
+                }
             }
         }
 
     }
     else {
 
-        gameOver(qp);
+        gameOver(p);
     }
 }
-
-
-
-
-
 
 void Snake::gameOver(QPainter &qp) {
 
@@ -138,12 +114,6 @@ void Snake::gameOver(QPainter &qp) {
     qp.drawText(-textWidth/2, 0, message);
 }
 
-
-
-
-
-
-
 void Snake::CheckApple() {
 
 
@@ -151,142 +121,134 @@ void Snake::CheckApple() {
 
         tailsize1++;
         CreateApple();
+        if(x1[tailsize1-1] == x1[tailsize1-2]) {
+            x1[tailsize1] = x1[tailsize1-1];
+            if(y1[tailsize1-1] > y1[tailsize1-2]) {
+                y1[tailsize1] = y1[tailsize1-1] + DOT_SIZE;
+            } else {
+                y1[tailsize1] = y1[tailsize1-1] - DOT_SIZE;
+            }
+        } else {
+            y1[tailsize1] = y1[tailsize1-1];
+            if(x1[tailsize1-1] > x1[tailsize1-2]) {
+                x1[tailsize1] = x1[tailsize1-1] + DOT_SIZE;
+            } else {
+                x1[tailsize1] = x1[tailsize1-1] - DOT_SIZE;
+            }
+        }
     }
+
 
     if ((x2[0] == applex) && (y2[0] == appley)) {
 
         tailsize2++;
         CreateApple();
+        if(x2[tailsize2-1] == x2[tailsize2-2]) {
+            x2[tailsize2] = x2[tailsize2-1];
+            if(y2[tailsize2-1] > y2[tailsize2-2]) {
+                y2[tailsize2] = y2[tailsize2-1] + DOT_SIZE;
+            } else {
+                y2[tailsize2] = y2[tailsize2-1] - DOT_SIZE;
+            }
+        } else {
+            y2[tailsize2] = y2[tailsize2-1];
+            if(x2[tailsize2-1] > x2[tailsize2-2]) {
+                x2[tailsize2] = x2[tailsize2-1] + DOT_SIZE;
+            } else {
+                x2[tailsize2] = x2[tailsize2-1] - DOT_SIZE;
+            }
+        }
     }
 }
 
-
-
 void Snake::move1() {
+
+    if(dir1 == NONE) return;
 
     for (int z = tailsize1; z > 0; z--) {
         x1[z] = x1[(z - 1)];
         y1[z] = y1[(z - 1)];
     }
 
-    if (leftDirection1) {
-        x1[0] -= DOT_SIZE;
-    }
-
-    if (rightDirection1) {
-        x1[0] += DOT_SIZE;
-    }
-
-    if (upDirection1) {
-        y1[0] -= DOT_SIZE;
-    }
-
-    if (downDirection1) {
-        y1[0] += DOT_SIZE;
+    switch(dir1) {
+        case(UP): {
+            y1[0] -= DOT_SIZE;
+            break;
+        }
+        case(DOWN): {
+            y1[0] += DOT_SIZE;
+            break;
+        }
+        case(LEFT): {
+            x1[0] -= DOT_SIZE;
+            break;
+        }
+        case(RIGHT): {
+            x1[0] += DOT_SIZE;
+            break;
+        }
+    default: break;
     }
 }
 
 void Snake::move2() {
+
+    if(dir2 == NONE) return;
 
     for (int z = tailsize2; z > 0; z--) {
         x2[z] = x2[(z - 1)];
         y2[z] = y2[(z - 1)];
     }
 
-    if (leftDirection2) {
-        x2[0] -= DOT_SIZE;
-    }
-
-    if (rightDirection2) {
-        x2[0] += DOT_SIZE;
-    }
-
-    if (upDirection2) {
-        y2[0] -= DOT_SIZE;
-    }
-
-    if (downDirection2) {
-        y2[0] += DOT_SIZE;
+    switch(dir2) {
+        case(UP): {
+            y2[0] -= DOT_SIZE;
+            break;
+        }
+        case(DOWN): {
+            y2[0] += DOT_SIZE;
+            break;
+        }
+        case(LEFT): {
+            x2[0] -= DOT_SIZE;
+            break;
+        }
+        case(RIGHT): {
+            x2[0] += DOT_SIZE;
+            break;
+        }
+    default: break;
     }
 }
 
 void Snake::CheckCollision() {
-    int playerss = 2;                 // CHANGE PLAYER COUNT
-
     for (int z = tailsize1; z > 0; z--) {
-
-        if ((z > 4) && (x1[0] == x1[z]) && (y1[0] == y1[z])) {
-            inGame = false;
-        }
+        if ((x1[0] == x1[z]) && (y1[0] == y1[z])) gamerules->running = false;
     }
-
     for (int z = tailsize2; z > 0; z--) {
-
-        if ((z > 4) && (x1[0] == x2[z]) && (y1[0] == y2[z])) {
-            inGame = false;
-        }
+        if ((x1[0] == x2[z]) && (y1[0] == y2[z])) gamerules->running = false;
     }
+    if (y1[0] >= B_HEIGHT) gamerules->running = false;
+    if (y1[0] < 0) gamerules->running = false;
+    if (x1[0] >= B_WIDTH) gamerules->running = false;
+    if (x1[0] < 0)gamerules->running = false;
 
-    if (y1[0] >= B_HEIGHT) {
-        inGame = false;
-    }
-
-    if (y1[0] < 0) {
-        inGame = false;
-    }
-
-    if (x1[0] >= B_WIDTH) {
-        inGame = false;
-    }
-
-    if (x1[0] < 0) {
-        inGame = false;
-    }
-
-    if(!inGame) {
-        killTimer(timerId);
-    }
-
-    if(playerss==2){
+    if(gamerules->multiplayer){
 
         for (int q = tailsize2; q > 0; q--) {
-
-            if ((q > 4) && (x2[0] == x2[q]) && (y2[0] == y2[q])) {
-                inGame = false;
-            }
+            if ((x2[0] == x2[q]) && (y2[0] == y2[q])) gamerules->running = false;
         }
-
         for (int q = tailsize1; q > 0; q--) {
-
-            if ((q > 1) && (x2[0] == x1[q]) && (y2[0] == y1[q])) {
-                    inGame = false;
-            }
-
+            if ((x2[0] == x1[q]) && (y2[0] == y1[q])) gamerules->running = false;
         }
-
-        if (y2[0] >= B_HEIGHT) {
-            inGame = false;
-        }
-
-        if (y2[0] < 0) {
-            inGame = false;
-        }
-
-        if (x2[0] >= B_WIDTH) {
-            inGame = false;
-        }
-
-        if (x2[0] < 0) {
-            inGame = false;
-        }
-
-        if(!inGame) {
-            killTimer(timerId);
-        }
+        if (y2[0] >= B_HEIGHT) gamerules->running = false;
+        if (y2[0] < 0) gamerules->running = false;
+        if (x2[0] >= B_WIDTH) gamerules->running = false;
+        if (x2[0] < 0) gamerules->running = false;
     }
+
+    if(gamerules->running == false) killTimer(timerId);
 }
-
-
 
 void Snake::CreateApple() {
 
@@ -296,18 +258,16 @@ void Snake::CreateApple() {
     appley = (randy)*40;
 }
 
-
-
 void Snake::timerEvent(QTimerEvent *e) {
 
     Q_UNUSED(e);
 
-    if (inGame) {
+    if (gamerules->running) {
 
-        CheckApple();
-        CheckCollision();
         move1();
         move2();
+        CheckApple();
+        CheckCollision();
     }
 
     repaint();
@@ -315,55 +275,18 @@ void Snake::timerEvent(QTimerEvent *e) {
 
 void Snake::keyPressEvent(QKeyEvent *e) {
 
-    int key1 = e->key();
-    int key2 = e->key();
+    int key = e->key();
 
-    if ((key1 == Qt::Key_Left) && (!rightDirection1)) {
-        leftDirection1 = true;
-        upDirection1 = false;
-        downDirection1 = false;
-    }
-
-    if ((key1 == Qt::Key_Right) && (!leftDirection1)) {
-        rightDirection1 = true;
-        upDirection1 = false;
-        downDirection1 = false;
-    }
-
-    if ((key1 == Qt::Key_Up) && (!downDirection1)) {
-        upDirection1 = true;
-        rightDirection1 = false;
-        leftDirection1 = false;
-    }
-
-    if ((key1 == Qt::Key_Down) && (!upDirection1)) {
-        downDirection1 = true;
-        rightDirection1 = false;
-        leftDirection1 = false;
-    }
-
-    if ((key2 == Qt::Key_A) && (!rightDirection2)) {
-        leftDirection2 = true;
-        upDirection2 = false;
-        downDirection2 = false;
-    }
-
-    if ((key2 == Qt::Key_D) && (!leftDirection2)) {
-        rightDirection2 = true;
-        upDirection2 = false;
-        downDirection2 = false;
-    }
-
-    if ((key2 == Qt::Key_W) && (!downDirection2)) {
-        upDirection2 = true;
-        rightDirection2 = false;
-        leftDirection2 = false;
-    }
-
-    if ((key2 == Qt::Key_S) && (!upDirection2)) {
-        downDirection2 = true;
-        rightDirection2 = false;
-        leftDirection2 = false;
+    switch(key) {
+    case(Qt::Key_Up): dir1 = UP; break;
+    case(Qt::Key_Down): dir1 = DOWN; break;
+    case(Qt::Key_Left): dir1 = LEFT; break;
+    case(Qt::Key_Right): dir1 = RIGHT; break;
+    case(Qt::Key_W): dir2 = UP; break;
+    case(Qt::Key_A): dir2 = LEFT; break;
+    case(Qt::Key_S): dir2 = DOWN; break;
+    case(Qt::Key_D): dir2 = RIGHT; break;
+    default: break;
     }
 
     QWidget::keyPressEvent(e);
